@@ -82,29 +82,29 @@ function App() {
   }
 
   function countBombAround(data: BlockState[][]) {
+    const directions = [
+      //八个方向的数据
+      [-1, -1],
+      [-1, 0],
+      [-1, 1],
+      [0, -1],
+      [0, 1],
+      [1, -1],
+      [1, 0],
+      [1, 1],
+    ];
     // 计算周围的炸弹数量格子填空
     for (const row of initState) {
       for (const block of row) {
         // 存在炸弹 将其上下左右都 加1
         if (block.mine) {
           const [x, y] = [block.x, block.y];
-          console.log(y, x);
-          const lt = getAroundData(y - 1, x - 1); //左上
-          lt && updateMineNumber(lt);
-          const t = getAroundData(y - 1, x); //上
-          t && updateMineNumber(t);
-          const rt = getAroundData(y - 1, x + 1); //右上
-          rt && updateMineNumber(rt);
-          const l = getAroundData(y, x - 1); //左
-          l && updateMineNumber(l);
-          const r = getAroundData(y, x + 1); //右
-          r && updateMineNumber(r);
-          const lb = getAroundData(y + 1, x - 1); //左下
-          lb && updateMineNumber(lb);
-          const b = getAroundData(y + 1, x); //下
-          b && updateMineNumber(b);
-          const rb = getAroundData(y + 1, x + 1); //右下
-          rb && updateMineNumber(rb);
+          directions.forEach(([dy, dx]) => {
+            const aroundData = getAroundData(y + dy, x + dx);
+            if (aroundData) {
+              updateMineNumber(aroundData);
+            }
+          });
           continue;
         }
       }
