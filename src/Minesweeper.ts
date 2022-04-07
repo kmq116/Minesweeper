@@ -39,10 +39,6 @@ export function generateMines(
   console.log(data, "初始化的数据");
   return data.map((item, i) => {
     return item.map((itm, j) => {
-      // console.log({ i, j });
-
-      // console.log(i === initial.y && j === initial.x);
-
       return {
         ...itm,
         revealed: itm.x === initial.x && itm.y === initial.y,
@@ -50,15 +46,23 @@ export function generateMines(
         mine:
           itm.y === initial.y && itm.x === initial.x
             ? false
-            : Math.random() > 0.1,
+            : Math.random() > 0.9,
       };
     });
   });
 }
 
+/**
+ * 扫雷翻开的规则是 如果翻开的格子是空 就递归其周围的格子 依次翻开，终止条件是周围的格子有数值
+ * @param block
+ * @param data
+ * @returns
+ */
 export function expandZero(block: BlockState, data: BlockState[][]) {
   console.log(block, data);
   // 如果是 0 不处理
+  // if (block.adjacentMines || block.revealed) return data;
+  //  如果翻开的地方是大于 0 的数字，不进行处理
   if (block.adjacentMines || block.revealed) return data;
   getSiblings(block, data).forEach((s) => {
     s.revealed = true;
