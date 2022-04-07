@@ -1,5 +1,6 @@
 import { useState } from "react";
 import {
+  checkGameState,
   countBombAround,
   expandZero,
   generateMines,
@@ -17,11 +18,13 @@ function App() {
 
   const [state, setState] = useState(initState);
   const onClick = (x: number, y: number) => {
-    console.log("onClick", x, y);
+    if (state[x][y].flagged) return;
     //  防止第一次就点击炸弹 所以点击第一个盒子的时候进行生成炸弹
     if (!mineGenerated) {
       mineGenerated = true;
-      return setState(countBombAround(generateMines(state[x][y], initState)));
+      return setState(
+        countBombAround(generateMines(state[x][y], initState, true))
+      );
     }
 
     // 扫描到雷游戏结束 最基本逻辑
@@ -47,6 +50,32 @@ function App() {
     });
 
     setState(result);
+    checkGameState(state);
+  };
+  const onRightClick = (e: React.MouseEvent, x: number, y: number) => {
+    e.preventDefault();
+    console.error(e, "right ");
+    //  防止第一次就点击炸弹 所以点击第一个盒子的时候进行生成炸弹
+    if (!mineGenerated) {
+      mineGenerated = true;
+      return setState(
+        countBombAround(generateMines(state[x][y], initState, false))
+      );
+    }
+    setState(
+      state.map((row, rowIndex) => {
+        return row.map((block, blockIndex) => {
+          if (rowIndex === x && y === blockIndex) {
+            return {
+              ...block,
+              flagged: !block.flagged,
+            };
+          }
+          return { ...block };
+        });
+      })
+    );
+    checkGameState(state);
   };
   return (
     <div className="text-center flex justify-center">
@@ -66,16 +95,20 @@ function App() {
                           ? "bg-red-500 w-10 h-10 border hover:bg-amber-300"
                           : "bg-#bfa-100 w-10 h-10 border hover:bg-amber-300"
                       }
-                      onClick={() => onClick(xIndex, yIndex)}
+                      onClick={(e) => onClick(xIndex, yIndex)}
+                      onContextMenu={(e) => onRightClick(e, xIndex, yIndex)}
                     >
                       {item.mine ? "💣" : item.adjacentMines || ""}
                     </button>
                   ) : (
                     <button
                       key={yIndex}
-                      onClick={() => onClick(xIndex, yIndex)}
+                      onClick={(e) => onClick(xIndex, yIndex)}
+                      onContextMenu={(e) => onRightClick(e, xIndex, yIndex)}
                       className="w-10 h-10 border hover:bg-amber-300 bg-slate-500"
-                    ></button>
+                    >
+                      {item.flagged ? "🚩" : ""}
+                    </button>
                   );
                 })}
               </div>

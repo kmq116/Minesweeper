@@ -19,8 +19,8 @@ export const directions = [
   [1, 1],
 ];
 
-const WIDTH = 10;
-const HEIGHT = 10;
+const WIDTH = 5;
+const HEIGHT = 5;
 // 初始化二维数组 && 随机生成炸弹
 export function initData(): BlockState[][] {
   return Array.from({ length: HEIGHT }, (a, x) =>
@@ -33,20 +33,23 @@ export function initData(): BlockState[][] {
 
 export function generateMines(
   initial: BlockState,
-  data: BlockState[][]
+  data: BlockState[][],
+  isRevealed: boolean
 ): BlockState[][] {
-  console.log(initial, "初始化的数据");
-  console.log(data, "初始化的数据");
   return data.map((item, i) => {
     return item.map((itm, j) => {
       return {
         ...itm,
-        revealed: itm.x === initial.x && itm.y === initial.y,
+        revealed: isRevealed && itm.x === initial.x && itm.y === initial.y,
         // 第一次点击的本身不能设置为地雷
         mine:
           itm.y === initial.y && itm.x === initial.x
             ? false
-            : Math.random() > 0.9,
+            : Math.random() > 0.95,
+        flagged:
+          !isRevealed && itm.y === initial.y && itm.x === initial.x
+            ? true
+            : false,
       };
     });
   });
@@ -63,10 +66,15 @@ export function expandZero(block: BlockState, data: BlockState[][]) {
   // 如果是 0 不处理
   // if (block.adjacentMines || block.revealed) return data;
   //  如果翻开的地方是大于 0 的数字，不进行处理
-  if (block.adjacentMines || block.revealed) return data;
+  if (block.adjacentMines) return data;
   getSiblings(block, data).forEach((s) => {
-    s.revealed = true;
-    expandZero(s, data);
+    // 没翻开就翻开并且展开
+    if (!s.revealed && !s.flagged) {
+      console.log(s, "木有旗子           ");
+
+      s.revealed = true;
+      expandZero(s, data);
+    }
   });
   return data;
 }
@@ -97,4 +105,14 @@ function getSiblings(block: BlockState, data: BlockState[][]) {
       return data[x2][y2];
     })
     .filter(Boolean) as BlockState[];
+}
+
+export function checkGameState(state: BlockState[][]) {
+  const blocks = state.flat();
+  if (
+    blocks.every((block) => block.revealed || (block.flagged && block.mine))
+  ) {
+    if (blocks.every((block) => block.flagged && !block)) alert("you cheat");
+    else alert("你赢了！！！");
+  }
 }
